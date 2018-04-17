@@ -1,6 +1,6 @@
 Add-Type -AssemblyName System.Windows.Forms
 
-Add-Type -TypeDefinition @"
+Add-Type -TypeDefinition @'
 using System;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
@@ -87,7 +87,7 @@ public class FishForm : Form
 
 }
 
-"@ -ReferencedAssemblies System.Windows.Forms
+'@ -ReferencedAssemblies System.Windows.Forms
 
 
 function SetBits([System.Drawing.Bitmap] $bitmap, [System.Windows.Forms.Form] $win)
