@@ -1,7 +1,3 @@
-using namespace System.Windows.Forms
-using namespace System.Drawing
-using namespace System.Net
-
 Add-Type -AssemblyName System.Windows.Forms
 
 Add-Type -TypeDefinition @"
@@ -94,7 +90,7 @@ public class FishForm : Form
 "@ -ReferencedAssemblies System.Windows.Forms
 
 
-function SetBits([Bitmap] $bitmap, [Form] $win)
+function SetBits([System.Drawing.Bitmap] $bitmap, [System.Windows.Forms.Form] $win)
 {
     $srcLoc = New-Object Point
     $topLoc = New-Object Point
@@ -159,7 +155,7 @@ function Start-SlideShow
     )
     $request = [WebRequest]::Create($BitmapUrl)
     $response = $request.GetResponse()
-    [bitmap] $image = $response.GetResponseStream()
+    [System.Drawing.Bitmap] $image = $response.GetResponseStream()
     
     $Form = New-Object FishForm
     $Form.StartPosition = [FormStartPosition]::Manual
