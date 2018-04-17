@@ -158,12 +158,15 @@ function Start-SlideShow
     [System.Drawing.Bitmap] $image = $response.GetResponseStream()
     
     $Form = New-Object FishForm
+    #$Form.AutoSize = $true
+    $Form.Width = $image.Width
+    $Form.Height = $image.Height
     $Form.StartPosition = [System.Windows.Forms.FormStartPosition]::Manual
     #$Form.Location = $srcLoc
     $Form.Left = -$image.Width
-    $Form.Top = 0
+    $Form.Top = [System.Windows.Forms.Screen]::PrimaryScreen.WorkingArea.Height - $image.Height
     $Form.Text = ''
-    $Form.AutoSize = $true
+    
     
     $Form.TopMost = $true
     $Form.UseWaitCursor = $false
@@ -183,5 +186,5 @@ function Start-SlideShow
 }
 
 
-Start-SlideShow -BitmapUrl 'http://big5kayakchallenge.com/wp-content/uploads/2017/12/simple-bmp-format-images-free-download-tint-photo-editor-free-latest-version-in-bmp-format-images-free-download.png'
+#Start-SlideShow -BitmapUrl 'http://big5kayakchallenge.com/wp-content/uploads/2017/12/simple-bmp-format-images-free-download-tint-photo-editor-free-latest-version-in-bmp-format-images-free-download.png'
 
