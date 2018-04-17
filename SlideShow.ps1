@@ -103,7 +103,7 @@ function SetBits([System.Drawing.Bitmap] $bitmap, [System.Windows.Forms.Form] $w
     [byte] $AC_SRC_ALPHA = 1;
     if (![Bitmap]::IsCanonicalPixelFormat($bitmap.PixelFormat) -or ![Bitmap]::IsAlphaPixelFormat($bitmap.PixelFormat))
     {
-        throw [ApplicationException] "The picture must be 32bit picture with alpha channel."
+        throw [ApplicationException] 'The picture must be 32bit picture with alpha channel.'
     }
 
     [IntPtr] $oldBits = [IntPtr]::Zero
@@ -162,7 +162,7 @@ function Start-SlideShow
     #$Form.Location = $srcLoc
     $Form.Left = -$image.Width
     $Form.Top = 0
-    $Form.Text = ""
+    $Form.Text = ''
     $Form.AutoSize = $true
     
     $Form.TopMost = $true
@@ -183,5 +183,5 @@ function Start-SlideShow
 }
 
 
-Start-SlideShow -BitmapUrl "http://big5kayakchallenge.com/wp-content/uploads/2017/12/simple-bmp-format-images-free-download-tint-photo-editor-free-latest-version-in-bmp-format-images-free-download.png"
+Start-SlideShow -BitmapUrl 'http://big5kayakchallenge.com/wp-content/uploads/2017/12/simple-bmp-format-images-free-download-tint-photo-editor-free-latest-version-in-bmp-format-images-free-download.png'
 
