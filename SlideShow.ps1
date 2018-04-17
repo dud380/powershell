@@ -1,4 +1,4 @@
-Add-Type -AssemblyName System.Windows.Forms
+Add-Type -AssemblyName 'System.Windows.Forms'
 
 Add-Type -TypeDefinition @'
 using System;
@@ -101,7 +101,7 @@ function SetBits([System.Drawing.Bitmap] $bitmap, [System.Windows.Forms.Form] $w
     [byte] $AC_SRC_OVER = 0;
     [Int32] $ULW_ALPHA = 2;
     [byte] $AC_SRC_ALPHA = 1;
-    if (![Bitmap]::IsCanonicalPixelFormat($bitmap.PixelFormat) -or ![Bitmap]::IsAlphaPixelFormat($bitmap.PixelFormat))
+    if (![System.Drawing.Bitmap]::IsCanonicalPixelFormat($bitmap.PixelFormat) -or ![System.Drawing.Bitmap]::IsAlphaPixelFormat($bitmap.PixelFormat))
     {
         throw [ApplicationException] 'The picture must be 32bit picture with alpha channel.'
     }
@@ -122,7 +122,7 @@ function SetBits([System.Drawing.Bitmap] $bitmap, [System.Windows.Forms.Form] $w
         $srcLoc.x = 0
         $srcLoc.y = 0
 
-        $hBitmap = $bitmap.GetHbitmap([Color]::FromArgb(0));
+        $hBitmap = $bitmap.GetHbitmap([System.Drawing.Color]::FromArgb(0));
         $oldBits = [Gdi32]::SelectObject($memDc, $hBitmap);
 
         $blendFunc.BlendOp = $AC_SRC_OVER;
@@ -153,12 +153,12 @@ function Start-SlideShow
         [Parameter(Mandatory=$true)]
         $BitmapUrl
     )
-    $request = [WebRequest]::Create($BitmapUrl)
+    $request = [System.Net.WebRequest]::Create($BitmapUrl)
     $response = $request.GetResponse()
     [System.Drawing.Bitmap] $image = $response.GetResponseStream()
     
     $Form = New-Object FishForm
-    $Form.StartPosition = [FormStartPosition]::Manual
+    $Form.StartPosition = [System.Windows.Forms.FormStartPosition]::Manual
     #$Form.Location = $srcLoc
     $Form.Left = -$image.Width
     $Form.Top = 0
@@ -172,7 +172,7 @@ function Start-SlideShow
     $Form.UseWaitCursor = $false
     
     $Form.Show()
-    while($Form.Left -lt [Screen]::PrimaryScreen.WorkingArea.Width)
+    while($Form.Left -lt [System.Windows.Forms.Screen]::PrimaryScreen.WorkingArea.Width)
     {
         SetBits $image $Form
         $Form.Left += 5
