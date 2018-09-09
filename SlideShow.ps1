@@ -7,6 +7,44 @@ using System.Windows.Forms;
 using System.ComponentModel;
 
 
+public enum TernaryRasterOperations : uint {
+    /// <summary>dest = source</summary>
+    SRCCOPY = 0x00CC0020,
+    /// <summary>dest = source OR dest</summary>
+    SRCPAINT = 0x00EE0086,
+    /// <summary>dest = source AND dest</summary>
+    SRCAND = 0x008800C6,
+    /// <summary>dest = source XOR dest</summary>
+    SRCINVERT = 0x00660046,
+    /// <summary>dest = source AND (NOT dest)</summary>
+    SRCERASE = 0x00440328,
+    /// <summary>dest = (NOT source)</summary>
+    NOTSRCCOPY = 0x00330008,
+    /// <summary>dest = (NOT src) AND (NOT dest)</summary>
+    NOTSRCERASE = 0x001100A6,
+    /// <summary>dest = (source AND pattern)</summary>
+    MERGECOPY = 0x00C000CA,
+    /// <summary>dest = (NOT source) OR dest</summary>
+    MERGEPAINT = 0x00BB0226,
+    /// <summary>dest = pattern</summary>
+    PATCOPY    = 0x00F00021,
+    /// <summary>dest = DPSnoo</summary>
+    PATPAINT = 0x00FB0A09,
+    /// <summary>dest = pattern XOR dest</summary>
+    PATINVERT = 0x005A0049,
+    /// <summary>dest = (NOT dest)</summary>
+    DSTINVERT = 0x00550009,
+    /// <summary>dest = BLACK</summary>
+    BLACKNESS = 0x00000042,
+    /// <summary>dest = WHITE</summary>
+    WHITENESS = 0x00FF0062,
+    /// <summary>
+    /// Capture window as seen on screen.  This includes layered windows 
+    /// such as WPF windows with AllowsTransparency="true"
+    /// </summary>
+    CAPTUREBLT = 0x40000000
+}
+
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct BLENDFUNCTION
 {
@@ -31,6 +69,17 @@ public struct Size
 
 public static class User32
 {
+    [DllImport("user32.dll", SetLastError=true)]
+    public static extern int SetClipboardData(int uFormat, IntPtr hMem);
+    [DllImport("user32.dll")]
+    public static extern bool EmptyClipboard();
+
+    [DllImport("user32.dll", SetLastError=true)]
+    public static extern bool CloseClipboard();
+
+    [DllImport("user32.dll", SetLastError=true)]
+    public static extern bool OpenClipboard(IntPtr hWndNewOwner);
+
     [DllImport("user32.dll", ExactSpelling = true)]
     public static extern int ReleaseDC(IntPtr hWnd, IntPtr hDC);
 
@@ -43,6 +92,12 @@ public static class User32
 
 public static class Gdi32
 {
+    [DllImport("gdi32.dll", EntryPoint = "BitBlt", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool BitBlt([In] IntPtr hdc, int nXDest, int nYDest, int nWidth, int nHeight, [In] IntPtr hdcSrc, int nXSrc, int nYSrc, TernaryRasterOperations dwRop);
+
+    [DllImport("gdi32.dll", EntryPoint = "CreateCompatibleBitmap")]
+    public static extern IntPtr CreateCompatibleBitmap([In] IntPtr hdc, int nWidth, int nHeight);
     [DllImport("gdi32.dll", ExactSpelling = true, SetLastError = true)]
     public static extern IntPtr CreateCompatibleDC(IntPtr hDC);
 
@@ -90,6 +145,8 @@ public class FishForm : Form
 '@ -ReferencedAssemblies System.Windows.Forms
 
 
+
+
 function SetBits([System.Drawing.Bitmap] $bitmap, [System.Windows.Forms.Form] $win)
 {
     $srcLoc = New-Object Point
@@ -107,10 +164,12 @@ function SetBits([System.Drawing.Bitmap] $bitmap, [System.Windows.Forms.Form] $w
     }
 
     [IntPtr] $oldBits = [IntPtr]::Zero
-    [IntPtr] $screenDC = [User32]::GetDC([IntPtr]::Zero)
+    [IntPtr] $screenDC = [User32]::([IntPtr]::Zero)
     [IntPtr] $hBitmap = [IntPtr]::Zero
     [IntPtr] $memDc = [Gdi32]::CreateCompatibleDC($screenDC)
 
+    [System.Runtime.InteropServices.Marshal]::GetLastWin32Error()
+    exit
     try
     {
         $topLoc.x = $win.Left
@@ -186,5 +245,43 @@ function Start-SlideShow
 }
 
 
-#Start-SlideShow -BitmapUrl 'http://big5kayakchallenge.com/wp-content/uploads/2017/12/simple-bmp-format-images-free-download-tint-photo-editor-free-latest-version-in-bmp-format-images-free-download.png'
+#Start-SlideShow -BitmapUrl 'https://bit.ly/2J4aBVD'
+
+
+function Invoke-ScreenShot([int32]$ax, [int32]$ay, [int32]$bx, [int32]$by)
+{
+    $a = New-Object Point
+    $b = New-Object Point
+    $a.x=0;
+    $a.y=0;
+ 
+    $b.x=500;
+    $b.y=500;
+    # copy screen to bitmap
+    [IntPtr] $hScreen = [User32]::GetDC([IntPtr]::Zero)
+    [IntPtr] $hBitmap = [IntPtr]::Zero
+    [IntPtr] $hDC = [Gdi32]::CreateCompatibleDC($hScreen)
+    # [IntPtr]     hScreen = GetDC(NULL);
+    # HDC     hDC     = CreateCompatibleDC(hScreen);
+    $hBitmap = [Gdi32]::CreateCompatibleBitmap($hScreen, [Math]::abs($b.x-$a.x), [Math]::abs($b.y-$a.y))
+    [IntPtr] $old_obj = [Gdi32]::SelectObject($hDC, $hBitmap)
+    [void][Gdi32]::BitBlt($hDC, 0, 0, [Math]::abs($b.x-$a.x), [Math]::abs($b.y-$a.y), $hScreen, $a.x, $a.y, 13369376)
+ 
+    
+    [void][User32]::OpenClipboard([IntPtr]::Zero)
+    [void][User32]::EmptyClipboard()
+    [void][User32]::SetClipboardData(2, $hBitmap)
+    [void][User32]::CloseClipboard()
+ 
+    
+    [void][Gdi32]::SelectObject($hDC, $old_obj)
+    [void][Gdi32]::DeleteDC($hDC)
+    [void][User32]::ReleaseDC([IntPtr]::Zero, $hScreen)
+    [void][Gdi32]::DeleteDC($hBitmap)
+}
+ 
+
+ 
+    # Invoke-ScreenShot 0 0 500 500
+
 
