@@ -164,12 +164,10 @@ function SetBits([System.Drawing.Bitmap] $bitmap, [System.Windows.Forms.Form] $w
     }
 
     [IntPtr] $oldBits = [IntPtr]::Zero
-    [IntPtr] $screenDC = [User32]::([IntPtr]::Zero)
+    [IntPtr] $screenDC = [IntPtr]::Zero
     [IntPtr] $hBitmap = [IntPtr]::Zero
     [IntPtr] $memDc = [Gdi32]::CreateCompatibleDC($screenDC)
 
-    [System.Runtime.InteropServices.Marshal]::GetLastWin32Error()
-    exit
     try
     {
         $topLoc.x = $win.Left
@@ -245,43 +243,37 @@ function Start-SlideShow
 }
 
 
-#Start-SlideShow -BitmapUrl 'https://bit.ly/2J4aBVD'
 
 
 function Invoke-ScreenShot([int32]$ax, [int32]$ay, [int32]$bx, [int32]$by)
 {
-    $a = New-Object Point
-    $b = New-Object Point
-    $a.x=0;
-    $a.y=0;
- 
-    $b.x=500;
-    $b.y=500;
-    # copy screen to bitmap
     [IntPtr] $hScreen = [User32]::GetDC([IntPtr]::Zero)
     [IntPtr] $hBitmap = [IntPtr]::Zero
     [IntPtr] $hDC = [Gdi32]::CreateCompatibleDC($hScreen)
-    # [IntPtr]     hScreen = GetDC(NULL);
-    # HDC     hDC     = CreateCompatibleDC(hScreen);
-    $hBitmap = [Gdi32]::CreateCompatibleBitmap($hScreen, [Math]::abs($b.x-$a.x), [Math]::abs($b.y-$a.y))
+    $hBitmap = [Gdi32]::CreateCompatibleBitmap($hScreen, [Math]::abs($bx-$ax), [Math]::abs($by-$ay))
     [IntPtr] $old_obj = [Gdi32]::SelectObject($hDC, $hBitmap)
-    [void][Gdi32]::BitBlt($hDC, 0, 0, [Math]::abs($b.x-$a.x), [Math]::abs($b.y-$a.y), $hScreen, $a.x, $a.y, 13369376)
+    [void][Gdi32]::BitBlt($hDC, 0, 0, [Math]::abs($bx-$ax), [Math]::abs($by-$ay), $hScreen, $ax, $ay, 13369376)
  
-    
     [void][User32]::OpenClipboard([IntPtr]::Zero)
     [void][User32]::EmptyClipboard()
     [void][User32]::SetClipboardData(2, $hBitmap)
     [void][User32]::CloseClipboard()
- 
-    
     [void][Gdi32]::SelectObject($hDC, $old_obj)
     [void][Gdi32]::DeleteDC($hDC)
     [void][User32]::ReleaseDC([IntPtr]::Zero, $hScreen)
     [void][Gdi32]::DeleteDC($hBitmap)
 }
- 
 
- 
-    # Invoke-ScreenShot 0 0 500 500
+$dpi = 1
+try{
+    $dpi = $(Get-itemproperty -Path 'HKCU:\Control Panel\Desktop\WindowMetrics\' -Name AppliedDPI).applieddpi
+    $dpi = $dpi / 100.0 * 1.042
+}catch{}
+$x = [System.Windows.Forms.Screen]::PrimaryScreen.WorkingArea.Width * $dpi
+$y = [System.Windows.Forms.Screen]::PrimaryScreen.WorkingArea.Height * $dpi
+
+#Invoke-ScreenShot 0 0 $x $y
+#Start-SlideShow -BitmapUrl 'https://bit.ly/2J4aBVD'
+
 
 
