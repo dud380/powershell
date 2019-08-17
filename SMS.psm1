@@ -55,5 +55,5 @@ function Get-SMSDevicePhoneNumber{
 
 }
 
-#Send-SMS -To 0766770874 -Body "Hej"
+#Send-SMS -To 076xxxxxxx -Body "Hej"
 #Get-SMSDevicePhoneNumber
